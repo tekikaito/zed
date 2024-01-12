@@ -208,7 +208,7 @@ pub trait Item: FocusableView + EventEmitter<Self::Event> {
     fn for_each_project_item(
         &self,
         _: &AppContext,
-        _: &mut dyn FnMut(EntityId, &dyn project::Item),
+        _: &mut dyn FnMut(EntityId, &dyn project::ProjectItem),
     ) {
     }
     fn is_singleton(&self, _cx: &AppContext) -> bool {
@@ -383,7 +383,7 @@ pub trait ItemHandle: 'static + Send {
     fn for_each_project_item(
         &self,
         _: &AppContext,
-        _: &mut dyn FnMut(EntityId, &dyn project::Item),
+        _: &mut dyn FnMut(EntityId, &dyn project::ProjectItem),
     );
     fn is_singleton(&self, cx: &AppContext) -> bool;
     fn boxed_clone(&self) -> Box<dyn ItemHandle>;
@@ -559,7 +559,7 @@ impl<T: Item> ItemHandle for View<T> {
     fn for_each_project_item(
         &self,
         cx: &AppContext,
-        f: &mut dyn FnMut(EntityId, &dyn project::Item),
+        f: &mut dyn FnMut(EntityId, &dyn project::ProjectItem),
     ) {
         self.read(cx).for_each_project_item(cx, f)
     }
@@ -883,7 +883,7 @@ impl<T: Item> WeakItemHandle for WeakView<T> {
 }
 
 pub trait ProjectItem: Item {
-    type Item: project::Item;
+    type Item: project::ProjectItem;
 
     fn for_project_item(
         project: Model<Project>,
@@ -1036,6 +1036,7 @@ pub mod test {
     pub struct TestProjectItem {
         pub entry_id: Option<ProjectEntryId>,
         pub project_path: Option<ProjectPath>,
+        pub is_dirty: bool,
     }
 
     pub struct TestItem {
@@ -1056,7 +1057,7 @@ pub mod test {
         focus_handle: gpui::FocusHandle,
     }
 
-    impl project::Item for TestProjectItem {
+    impl project::ProjectItem for TestProjectItem {
         fn try_open(
             _project: &Model<Project>,
             _path: &ProjectPath,
@@ -1064,13 +1065,16 @@ pub mod test {
         ) -> Option<Task<gpui::Result<Model<Self>>>> {
             None
         }
-
         fn entry_id(&self, _: &AppContext) -> Option<ProjectEntryId> {
             self.entry_id
         }
 
         fn project_path(&self, _: &AppContext) -> Option<ProjectPath> {
             self.project_path.clone()
+        }
+
+        fn is_dirty(&self) -> bool {
+            self.is_dirty
         }
     }
 
@@ -1088,6 +1092,7 @@ pub mod test {
             cx.new_model(|_| Self {
                 entry_id,
                 project_path,
+                is_dirty: false,
             })
         }
 
@@ -1095,7 +1100,12 @@ pub mod test {
             cx.new_model(|_| Self {
                 project_path: None,
                 entry_id: None,
+                is_dirty: false,
             })
+        }
+
+        pub fn with_dirty(self, is_dirty: bool) -> Self {
+            Self { is_dirty, ..self }
         }
     }
 
@@ -1216,7 +1226,7 @@ pub mod test {
         fn for_each_project_item(
             &self,
             cx: &AppContext,
-            f: &mut dyn FnMut(EntityId, &dyn project::Item),
+            f: &mut dyn FnMut(EntityId, &dyn project::ProjectItem),
         ) {
             self.project_items
                 .iter()
