@@ -385,7 +385,7 @@ async fn test_managing_language_servers(cx: &mut gpui::TestAppContext) {
     });
 
     // A server is started up, and it is notified about Rust files.
-    let mut fake_rust_server = fake_rust_servers.next().await.unwrap();
+    let fake_rust_server = fake_rust_servers.next().await.unwrap();
     fake_rust_server
         .request::<lsp::request::RegisterCapability>(lsp::RegistrationParams {
             registrations: vec![lsp::Registration {
@@ -460,7 +460,7 @@ async fn test_managing_language_servers(cx: &mut gpui::TestAppContext) {
         .unwrap();
 
     // A json language server is started up and is only notified about the json buffer.
-    let mut fake_json_server = fake_json_servers.next().await.unwrap();
+    let fake_json_server = fake_json_servers.next().await.unwrap();
     fake_json_server
         .request::<lsp::request::RegisterCapability>(lsp::RegistrationParams {
             registrations: vec![lsp::Registration {
@@ -658,8 +658,8 @@ async fn test_managing_language_servers(cx: &mut gpui::TestAppContext) {
         .handle_request::<lsp::request::Shutdown, _, _>(|_, _| future::ready(Ok(())));
     futures::join!(rust_shutdown_requests.next(), json_shutdown_requests.next());
 
-    let mut fake_rust_server = fake_rust_servers.next().await.unwrap();
-    let mut fake_json_server = fake_json_servers.next().await.unwrap();
+    let fake_rust_server = fake_rust_servers.next().await.unwrap();
+    let fake_json_server = fake_json_servers.next().await.unwrap();
 
     // Ensure rust document is reopened in new rust language server
     assert_eq!(
@@ -1461,7 +1461,7 @@ async fn test_restarted_server_reporting_invalid_buffer_version(cx: &mut gpui::T
     project.update(cx, |project, cx| {
         project.restart_language_servers_for_buffers([buffer.clone()], cx);
     });
-    let mut fake_server = fake_servers.next().await.unwrap();
+    let fake_server = fake_servers.next().await.unwrap();
     let notification = fake_server
         .receive_notification::<lsp::notification::DidOpenTextDocument>()
         .await
@@ -1498,7 +1498,7 @@ async fn test_cancel_language_server_work(cx: &mut gpui::TestAppContext) {
         .unwrap();
 
     // Simulate diagnostics starting to update.
-    let mut fake_server = fake_servers.next().await.unwrap();
+    let fake_server = fake_servers.next().await.unwrap();
     fake_server
         .start_progress_with(
             "another-token",
@@ -1569,7 +1569,7 @@ async fn test_toggling_enable_language_server(cx: &mut gpui::TestAppContext) {
         .await
         .unwrap();
 
-    let mut fake_rust_server_1 = fake_rust_servers.next().await.unwrap();
+    let fake_rust_server_1 = fake_rust_servers.next().await.unwrap();
     assert_eq!(
         fake_rust_server_1
             .receive_notification::<lsp::notification::DidOpenTextDocument>()
@@ -1580,7 +1580,7 @@ async fn test_toggling_enable_language_server(cx: &mut gpui::TestAppContext) {
         "file:///dir/a.rs"
     );
 
-    let mut fake_js_server = fake_js_servers.next().await.unwrap();
+    let fake_js_server = fake_js_servers.next().await.unwrap();
     assert_eq!(
         fake_js_server
             .receive_notification::<lsp::notification::DidOpenTextDocument>()
@@ -1631,7 +1631,7 @@ async fn test_toggling_enable_language_server(cx: &mut gpui::TestAppContext) {
             });
         })
     });
-    let mut fake_rust_server_2 = fake_rust_servers.next().await.unwrap();
+    let fake_rust_server_2 = fake_rust_servers.next().await.unwrap();
     assert_eq!(
         fake_rust_server_2
             .receive_notification::<lsp::notification::DidOpenTextDocument>()
@@ -1677,7 +1677,7 @@ async fn test_transforming_diagnostics(cx: &mut gpui::TestAppContext) {
         .await
         .unwrap();
 
-    let mut fake_server = fake_servers.next().await.unwrap();
+    let fake_server = fake_servers.next().await.unwrap();
     let open_notification = fake_server
         .receive_notification::<lsp::notification::DidOpenTextDocument>()
         .await;
@@ -2093,7 +2093,7 @@ async fn test_edits_from_lsp2_with_past_version(cx: &mut gpui::TestAppContext) {
         .await
         .unwrap();
 
-    let mut fake_server = fake_servers.next().await.unwrap();
+    let fake_server = fake_servers.next().await.unwrap();
     let lsp_document_version = fake_server
         .receive_notification::<lsp::notification::DidOpenTextDocument>()
         .await
