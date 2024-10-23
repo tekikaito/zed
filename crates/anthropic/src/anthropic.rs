@@ -1,7 +1,5 @@
 mod supported_countries;
 
-use serde::ser::{Serialize, SerializeStruct, Serializer};
-use serde_json::{json, Value};
 use std::time::Duration;
 use std::{pin::Pin, str::FromStr};
 
@@ -10,7 +8,6 @@ use chrono::{DateTime, Utc};
 use futures::{io::BufReader, stream::BoxStream, AsyncBufReadExt, AsyncReadExt, Stream, StreamExt};
 use http_client::http::{HeaderMap, HeaderValue};
 use http_client::{AsyncBody, HttpClient, HttpRequestExt, Method, Request as HttpRequest};
-use schemars::schema::RootSchema;
 use serde::{Deserialize, Serialize};
 use strum::{EnumIter, EnumString};
 use thiserror::Error;
@@ -468,68 +465,11 @@ pub struct ImageSource {
     pub data: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Tool {
     pub name: String,
     pub description: String,
-    pub input_schema: RootSchema,
-}
-
-impl Serialize for Tool {
-    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        let mut state = serializer.serialize_struct("Tool", 3)?;
-        state.serialize_field("name", &self.name)?;
-        state.serialize_field("description", &self.description)?;
-
-        let input_schema = root_schema_to_anthropic_json(&self.input_schema);
-        state.serialize_field("input_schema", &input_schema)?;
-
-        state.end()
-    }
-}
-
-fn root_schema_to_anthropic_json(root_schema: &RootSchema) -> Value {
-    let properties = root_schema
-        .schema
-        .object
-        .unwrap()
-        .properties
-        .into_iter()
-        .map(|(name, schema)| (name, to_input_object(schema)))
-        .collect::<serde_json::Map<_, _>>();
-
-    Ok(json!({
-        "name": "object",
-        "properties": properties,
-        "required": serde_json::to_value(&object_validation.required).unwrap()
-    })
-    .unwrap())
-}
-
-fn to_input_object(schema: &Schema) -> Value {
-    match schema {
-        Schema::Object(obj) => {
-            let mut result = serde_json::Map::new();
-
-            if let Some(instance_type) = &obj.instance_type {
-                result.insert("type".to_string(), json!(instance_type.to_string()));
-            }
-
-            if let Some(metadata) = &obj.metadata {
-                if let Some(description) = &metadata.description {
-                    result.insert("description".to_string(), json!(description));
-                }
-            }
-
-            // Add other relevant fields from SchemaObject as needed
-
-            Ok(Value::Object(result))
-        }
-        _ => Err("Unsupported schema type".to_string()),
-    }
+    pub input_schema: serde_json::Value,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
