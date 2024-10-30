@@ -2679,7 +2679,7 @@ impl Workspace {
     where
         T: ProjectItem,
     {
-        use project::Item as _;
+        use project::ProjectItem as _;
         let project_item = project_item.read(cx);
         let entry_id = project_item.entry_id(cx);
         let project_path = project_item.project_path(cx);
@@ -7358,11 +7358,28 @@ mod tests {
         });
         let multibuffer_with_both_files_id = dirty_multibuffer_with_both.item_id();
         workspace.update(cx, |workspace, cx| {
-            workspace.add_item(pane.clone(), Box::new(dirty_regular_buffer.clone()), cx);
-            workspace.add_item(pane.clone(), Box::new(dirty_regular_buffer_2.clone()), cx);
+            workspace.add_item(
+                pane.clone(),
+                Box::new(dirty_regular_buffer.clone()),
+                None,
+                false,
+                false,
+                cx,
+            );
+            workspace.add_item(
+                pane.clone(),
+                Box::new(dirty_regular_buffer_2.clone()),
+                None,
+                false,
+                false,
+                cx,
+            );
             workspace.add_item(
                 pane.clone(),
                 Box::new(dirty_multibuffer_with_both.clone()),
+                None,
+                false,
+                false,
                 cx,
             );
         });
@@ -7483,11 +7500,28 @@ mod tests {
         });
         let multibuffer_with_both_files_id = dirty_multibuffer_with_both.item_id();
         workspace.update(cx, |workspace, cx| {
-            workspace.add_item(pane.clone(), Box::new(dirty_regular_buffer.clone()), cx);
-            workspace.add_item(pane.clone(), Box::new(dirty_regular_buffer_2.clone()), cx);
+            workspace.add_item(
+                pane.clone(),
+                Box::new(dirty_regular_buffer.clone()),
+                None,
+                false,
+                false,
+                cx,
+            );
+            workspace.add_item(
+                pane.clone(),
+                Box::new(dirty_regular_buffer_2.clone()),
+                None,
+                false,
+                false,
+                cx,
+            );
             workspace.add_item(
                 pane.clone(),
                 Box::new(dirty_multibuffer_with_both.clone()),
+                None,
+                false,
+                false,
                 cx,
             );
         });

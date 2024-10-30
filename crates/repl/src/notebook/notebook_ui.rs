@@ -193,16 +193,6 @@ impl NotebookEditor {
         })
     }
 
-    fn is_dirty(&self, cx: &AppContext) -> bool {
-        self.cell_map.values().any(|cell| {
-            if let Cell::Code(code_cell) = cell {
-                code_cell.read(cx).is_dirty(cx)
-            } else {
-                false
-            }
-        })
-    }
-
     fn clear_outputs(&mut self, cx: &mut ViewContext<Self>) {
         for cell in self.cell_map.values() {
             if let Cell::Code(code_cell) = cell {
@@ -530,7 +520,7 @@ pub struct NotebookItem {
     notebook: nbformat::v4::Notebook,
 }
 
-impl project::Item for NotebookItem {
+impl project::ProjectItem for NotebookItem {
     fn try_open(
         project: &Model<Project>,
         path: &ProjectPath,
@@ -578,6 +568,10 @@ impl project::Item for NotebookItem {
 
     fn project_path(&self, _: &AppContext) -> Option<ProjectPath> {
         Some(self.project_path.clone())
+    }
+
+    fn is_dirty(&self) -> bool {
+        false
     }
 }
 
@@ -648,8 +642,13 @@ impl Item for NotebookEditor {
     }
 
     fn is_dirty(&self, cx: &AppContext) -> bool {
-        // self.is_dirty(cx)
-        false
+        self.cell_map.values().any(|cell| {
+            if let Cell::Code(code_cell) = cell {
+                code_cell.read(cx).is_dirty(cx)
+            } else {
+                false
+            }
+        })
     }
 }
 
