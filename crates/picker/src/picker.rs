@@ -500,6 +500,20 @@ impl<D: PickerDelegate> Picker<D> {
     }
 
     fn render_element(&self, cx: &mut ViewContext<Self>, ix: usize) -> impl IntoElement {
+        // We need extra space after certain list items to accommodate
+        // separators. This prevents separators from overlapping with the next
+        // item. Note: We apply the extra space to the items in the [`gpui::List`]
+        // directly, not [`ui::ListItem`].
+        const BORDER_WIDTH: f32 = 1.0;
+        const SPACE_BETWEEN_ITEMS: f32 = 3.0;
+
+        const TOTAL_EXTRA_SPACE: f32 = BORDER_WIDTH + (SPACE_BETWEEN_ITEMS * 2.0);
+
+        let is_after_separator = self
+            .delegate
+            .separators_after_indices()
+            .contains(&(ix.saturating_sub(1)));
+
         div()
             .id(("item", ix))
             .cursor_pointer()
@@ -518,18 +532,24 @@ impl<D: PickerDelegate> Picker<D> {
                     this.handle_click(ix, event.modifiers.platform, cx)
                 }),
             )
-            .children(
-                self.delegate
-                    .render_match(ix, ix == self.delegate.selected_index(), cx),
-            )
+            // Here is where we draw the separator on the item itself.
             .when(
                 self.delegate.separators_after_indices().contains(&ix),
                 |picker| {
                     picker
+                        .pb(px(SPACE_BETWEEN_ITEMS))
                         .border_color(cx.theme().colors().border_variant)
-                        .border_b_1()
-                        .py(px(-1.0))
+                        .border_b(px(BORDER_WIDTH))
                 },
+            )
+            // Here is where we make the space for the separator, which is drawn
+            // on the item before this one.
+            .when(is_after_separator, |picker| {
+                picker.pt(px(TOTAL_EXTRA_SPACE))
+            })
+            .children(
+                self.delegate
+                    .render_match(ix, ix == self.delegate.selected_index(), cx),
             )
     }
 
