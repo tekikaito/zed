@@ -9630,6 +9630,7 @@ dependencies = [
  "menu",
  "multi_buffer",
  "nbformat",
+ "picker",
  "project",
  "runtimelib",
  "schemars",
