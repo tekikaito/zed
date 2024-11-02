@@ -507,7 +507,7 @@ impl<D: PickerDelegate> Picker<D> {
         const BORDER_WIDTH: f32 = 1.0;
         const SPACE_BETWEEN_ITEMS: f32 = 3.0;
 
-        const TOTAL_EXTRA_SPACE: f32 = BORDER_WIDTH + (SPACE_BETWEEN_ITEMS * 2.0);
+        let has_separator = self.delegate.separators_after_indices().contains(&ix);
 
         let is_after_separator = self
             .delegate
@@ -532,20 +532,18 @@ impl<D: PickerDelegate> Picker<D> {
                     this.handle_click(ix, event.modifiers.platform, cx)
                 }),
             )
+            // Base spacing for all items
+            .py(px(SPACE_BETWEEN_ITEMS))
             // Here is where we draw the separator on the item itself.
-            .when(
-                self.delegate.separators_after_indices().contains(&ix),
-                |picker| {
-                    picker
-                        .pb(px(SPACE_BETWEEN_ITEMS))
-                        .border_color(cx.theme().colors().border_variant)
-                        .border_b(px(BORDER_WIDTH))
-                },
-            )
-            // Here is where we make the space for the separator, which is drawn
-            // on the item before this one.
+            .when(has_separator, |picker| {
+                picker
+                    .border_color(cx.theme().colors().border_variant)
+                    .border_b(px(BORDER_WIDTH))
+                    .mb(px(SPACE_BETWEEN_ITEMS))
+            })
+            // Add extra space after separator
             .when(is_after_separator, |picker| {
-                picker.pt(px(TOTAL_EXTRA_SPACE))
+                picker.mt(px(SPACE_BETWEEN_ITEMS))
             })
             .children(
                 self.delegate
